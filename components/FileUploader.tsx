@@ -1,35 +1,31 @@
 "use client";
-
 import { useState } from "react";
 
-export default function FileUploader({ onChange }: { onChange: any }) {
+export default function FileUploader() {
   const [files, setFiles] = useState<File[]>([]);
+  const [status, setStatus] = useState("");
 
-  function handleFiles(e: any) {
-    const selected = Array.from(e.target.files);
-    setFiles(selected);
-    onChange(selected);
-  }
+  const handleUpload = async () => {
+    const res = await fetch("/api/upload-documents", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ files }),
+    });
+    const data = await res.json();
+    setStatus(data.success ? "Uploaded successfully" : data.error);
+  };
 
   return (
     <div>
       <input
         type="file"
         multiple
-        onChange={handleFiles}
-        className="border p-3 rounded-lg w-full"
+        onChange={(e) =>
+          setFiles(Array.from(e.target.files ?? []))
+        }
       />
-
-      {files.length > 0 && (
-        <div className="mt-4">
-          <h3 className="font-medium mb-2">Selected Files:</h3>
-          <ul>
-            {files.map((file, idx) => (
-              <li key={idx}>{file.name}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <button onClick={handleUpload}>Upload</button>
+      <p>{status}</p>
     </div>
   );
 }
